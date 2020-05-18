@@ -1,22 +1,20 @@
-﻿using GigHub.Models;
+﻿using System.Data.Entity;
 using GigHub.Persistence;
-using GigHub.Repositories;
-using GigHub.ViewModels;
 using Microsoft.AspNet.Identity;
 using System.Linq;
 using System.Web.Mvc;
+using GigHub.Core;
+using GigHub.Core.Models;
+using GigHub.Core.ViewModels;
 
 namespace GigHub.Controllers
 {
     public class GigsController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UnitOfWork _unitOfWork;
-
-        public GigsController()
+        private readonly IUnitOfWork _unitOfWork;
+        public GigsController(IUnitOfWork unitOfWork)
         {
-            _context = new ApplicationDbContext();
-            _unitOfWork = new UnitOfWork(_context);
+            _unitOfWork = unitOfWork;
         }
         [Authorize]
         public ActionResult Create()
