@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using GigHub.Core;
 using GigHub.Core.Dtos;
 using GigHub.Core.Models;
 using GigHub.Persistence;
@@ -13,17 +14,17 @@ namespace GigHub.Controllers.Api
     [Authorize]
     public class AttendancesController : ApiController
     {
-        private ApplicationDbContext _context;
-        public AttendancesController()
+        private readonly IUnitOfWork _unitOfWork;
+        public AttendancesController(IUnitOfWork unitOfWork)
         {
-            _context = new ApplicationDbContext();
+            _unitOfWork = unitOfWork;
         }
 
         [HttpPost]
         public HttpResponseMessage Attend(AttendanceDto gig)
         {
             var userId = User.Identity.GetUserId();
-            var exists = _context.Attendances.Any(a => a.AttendeeId == userId && a.GigId == gig.GigId);
+            var exists = _unitOfWork.Attendances.Exist(userId, gig.GigId);
             if (exists)
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Attendance already exist.");
 
@@ -33,8 +34,8 @@ namespace GigHub.Controllers.Api
                 AttendeeId = userId
             };
 
-            _context.Attendances.Add(attendance);
-            _context.SaveChanges();
+            _unitOfWork.Attendances.Add(attendance);
+            _unitOfWork.Complete();
 
             return Request.CreateResponse(HttpStatusCode.OK);
         }
@@ -43,14 +44,14 @@ namespace GigHub.Controllers.Api
         {
             var userId = User.Identity.GetUserId();
 
-            var attendance = _context.Attendances.SingleOrDefault(a => a.AttendeeId == userId && a.GigId == id);
+            var attendance = _unitOfWork.Attendances.GetAttendance(userId, id);
 
             if (attendance == null)
                 return Request.CreateResponse(HttpStatusCode.NotFound, "Attendance does not exist.");
 
-            _context.Attendances
+            _unitOfWork.Attendances
                 .Remove(attendance);
-            _context.SaveChanges();
+            _unitOfWork.Complete();
             return Request.CreateResponse(HttpStatusCode.OK);
         }
     }

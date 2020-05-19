@@ -1,5 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http;
+using System.Web.Http.Dependencies;
 using GigHub.Persistence;
+using Ninject.Activation;
 using Ninject.Extensions.Conventions;
+using Ninject.Syntax;
 using Ninject.Web.Common.WebHost;
 
 [assembly: WebActivatorEx.PreApplicationStartMethod(typeof(GigHub.App_Start.NinjectWebCommon), "Start")]
@@ -13,8 +19,46 @@ namespace GigHub.App_Start
     using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 
     using Ninject;
+    using Ninject.Parameters;
     using Ninject.Web.Common;
+    public class NinjectResolver : NinjectScope, IDependencyResolver
+    {
+        private readonly IKernel _kernel;
+        public NinjectResolver(IKernel kernel)
+            : base(kernel)
+        {
+            _kernel = kernel;
+        }
+        public IDependencyScope BeginScope()
+        {
+            return new NinjectScope(_kernel.BeginBlock());
+        }
+    }
 
+    public class NinjectScope : IDependencyScope
+    {
+        protected IResolutionRoot resolutionRoot;
+        public NinjectScope(IResolutionRoot kernel)
+        {
+            resolutionRoot = kernel;
+        }
+        public object GetService(Type serviceType)
+        {
+            IRequest request = resolutionRoot.CreateRequest(serviceType, null, new Parameter[0], true, true);
+            return resolutionRoot.Resolve(request).SingleOrDefault();
+        }
+        public IEnumerable<object> GetServices(Type serviceType)
+        {
+            IRequest request = resolutionRoot.CreateRequest(serviceType, null, new Parameter[0], true, true);
+            return resolutionRoot.Resolve(request).ToList();
+        }
+        public void Dispose()
+        {
+            IDisposable disposable = (IDisposable)resolutionRoot;
+            if (disposable != null) disposable.Dispose();
+            resolutionRoot = null;
+        }
+    }
     public static class NinjectWebCommon 
     {
         private static readonly Bootstrapper bootstrapper = new Bootstrapper();
@@ -56,7 +100,8 @@ namespace GigHub.App_Start
                     x.FromThisAssembly()
                         .SelectAllClasses()
                         .BindDefaultInterface();
-                });
+                }); 
+                GlobalConfiguration.Configuration.DependencyResolver = new NinjectResolver(kernel);
                 return kernel;
             }
             catch

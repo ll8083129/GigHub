@@ -58,5 +58,12 @@ namespace GigHub.Persistence.Repositories
                 .Where(g => g.DateTime > DateTime.Now && g.IsCanceled == false)
                 .ToList();
         }
+
+        public Gig GetGigToCancel(int id, string userId)
+        {
+            return _context.Gigs
+                .Include(g => g.Attendances.Select(a => a.Attendee))
+                .Single(g => g.Id == id && g.ArtistId == userId);
+        }
     }
 }

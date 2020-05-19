@@ -11,5 +11,6 @@ namespace GigHub.Core.Repositories
         Gig GetSingleGig(int gigId);
         void AddGig(Gig gig);
         IEnumerable<Gig> GetFutureGigs();
+        Gig GetGigToCancel(int id, string userId);
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using GigHub.Core;
 using GigHub.Core.Dtos;
 using GigHub.Core.Models;
 
@@ -12,11 +13,11 @@ namespace GigHub.Controllers.Api
     [Authorize]
     public class FollowingsController : ApiController
     {
-        private ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public FollowingsController()
+        public FollowingsController(IUnitOfWork unitOfWork)
         {
-            _context = new ApplicationDbContext();
+            _unitOfWork = unitOfWork;
         }
 
         [HttpPost]
@@ -24,7 +25,7 @@ namespace GigHub.Controllers.Api
         {
             var userId = User.Identity.GetUserId();
 
-            if (_context.Followings.Any(f => f.FollowerId == userId && f.FolloweeId == dto.FolloweeId))
+            if (_unitOfWork.Followings.IsFollowing(userId, dto.FolloweeId))
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Following already exist.");
 
             var following = new Following
@@ -32,9 +33,8 @@ namespace GigHub.Controllers.Api
                 FollowerId = userId,
                 FolloweeId = dto.FolloweeId
             };
-            _context.Followings.Add(following);
-            _context.SaveChanges();
-
+            _unitOfWork.Followings.AddFollowing(following);
+            _unitOfWork.Complete();
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
@@ -42,13 +42,12 @@ namespace GigHub.Controllers.Api
         public HttpResponseMessage Unfollow(string id)
         {
             var userId = User.Identity.GetUserId();
-
-            var following = _context.Followings
-                .SingleOrDefault(f => f.FollowerId == userId && f.FolloweeId == id);
+            
+            var following = _unitOfWork.Followings.GetSingleFollowing(userId, id);
             if (following == null)
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Following does not exist.");
-            _context.Followings.Remove(following);
-            _context.SaveChanges();
+            _unitOfWork.Followings.RemoveFollowing(following);
+            _unitOfWork.Complete();
             return Request.CreateResponse(HttpStatusCode.OK);
         }
     }
