@@ -216,6 +216,17 @@
     <Compile Include="Core\IUnitOfWork.cs" />
     <Compile Include="Core\Repositories\INotificationRepository.cs" />
     <Compile Include="Core\Repositories\IUserNotificationsRepository.cs" />
+    <Compile Include="Persistance\Migrations\202005190921110_fluentApi.cs" />
+    <Compile Include="Persistance\Migrations\202005190921110_fluentApi.Designer.cs">
+      <DependentUpon>202005190921110_fluentApi.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Persistence\EntityConfigurations\ApplicationUserConfiguration.cs" />
+    <Compile Include="Persistence\EntityConfigurations\AttendanceConfiguration.cs" />
+    <Compile Include="Persistence\EntityConfigurations\GenreConfiguration.cs" />
+    <Compile Include="Persistence\EntityConfigurations\FollowingConfiguration.cs" />
+    <Compile Include="Persistence\EntityConfigurations\GigConfiguration.cs" />
+    <Compile Include="Persistence\EntityConfigurations\NotificationConfiguration.cs" />
+    <Compile Include="Persistence\EntityConfigurations\UserNotificationConfiguration.cs" />
     <Compile Include="Persistence\Repositories\UserNotificationRepository.cs" />
     <Compile Include="Persistence\Repositories\NotificationRepository.cs" />
     <Compile Include="Persistence\Repositories\FollowingRepository.cs" />
@@ -474,6 +485,9 @@
     <Content Include="Scripts\jquery-3.4.1.min.map" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Persistance\Migrations\202005190921110_fluentApi.resx">
+      <DependentUpon>202005190921110_fluentApi.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Persistence\Migrations\202004161821139_init.resx">
       <DependentUpon>202004161821139_init.cs</DependentUpon>
     </EmbeddedResource>
